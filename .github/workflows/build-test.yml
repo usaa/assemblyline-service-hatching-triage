@@ -1,0 +1,40 @@
+name: Test
+
+on: workflow_call
+
+permissions:
+  contents: read
+
+env:
+  src_dir: hatching
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libfuzzy-dev libfuzzy2
+        python -m pip install --upgrade pip  
+        pip install -r requirements.txt
+        pip install -r requirements-unittest.txt
+    - name: flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 ${{ env.src_dir }} --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings.
+        flake8 ${{ env.src_dir }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: pylint
+      run: |
+        python3 -m pylint -f colorized --load-plugins=pylint.extensions.mccabe --max-complexity 25 --fail-under=8 ${{ env.src_dir }}
+    - name: Unit Test
+      run: |
+        pytest --cov=hatching tests

@@ -1,0 +1,260 @@
+{
+    "version": "0.3.0",
+    "sample": {
+        "id": "230815-aaabbbccc1",
+        "score": 10,
+        "submitted": "2023-08-15T12:46:41Z",
+        "target": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45",
+        "size": 89088,
+        "md5": "8586cbd788ad8719aa0fd44d59125bac",
+        "sha1": "255ccab39b8fac3f9ae60a87acdc0a97e9b7e3f4",
+        "sha256": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45",
+        "sha512": "c53ad835ca1fc8c76405e47aa5acad0d73f3417b145b477bbe928731a4fcd45f97f47f4a069af7f4854875048e7b0c8ab90079f2686b19ca868a31238d9d1f29",
+        "ssdeep": "1536:LMILTrdNEMIXWpbh7lvC19/eWR7+rdZTXqbV2TB9074yNYDelnPRJ:LM+IbSBlvC53R7+zabcl907Y6lP/",
+        "static_tags": [
+            "windows",
+            "x86"
+        ]
+    },
+    "task": {
+        "target": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45.exe",
+        "size": 89088,
+        "md5": "8586cbd788ad8719aa0fd44d59125bac",
+        "sha1": "255ccab39b8fac3f9ae60a87acdc0a97e9b7e3f4",
+        "sha256": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45",
+        "sha512": "c53ad835ca1fc8c76405e47aa5acad0d73f3417b145b477bbe928731a4fcd45f97f47f4a069af7f4854875048e7b0c8ab90079f2686b19ca868a31238d9d1f29",
+        "ssdeep": "1536:LMILTrdNEMIXWpbh7lvC19/eWR7+rdZTXqbV2TB9074yNYDelnPRJ:LM+IbSBlvC53R7+zabcl907Y6lP/",
+        "static_tags": [
+            "windows",
+            "x86"
+        ]
+    },
+    "analysis": {
+        "score": 10,
+        "tags": [
+            "family:ramnit",
+            "banker",
+            "spyware",
+            "stealer",
+            "trojan",
+            "upx",
+            "worm"
+        ],
+        "features": [
+            "analog",
+            "overview"
+        ],
+        "submitted": "2023-08-15T12:46:41Z",
+        "reported": "2023-08-15T12:47:18Z",
+        "max_time_kernel": 702,
+        "backend": "sbx4m33",
+        "resource": "win10v2004-20230919-en",
+        "resource_tags": [
+            "arch:x64",
+            "arch:x86",
+            "image:win10v2004-20230914-en",
+            "locale:en-us",
+            "os:windows10-2004-x64",
+            "system"
+        ],
+        "platform": "windows10-2004_x64"
+    },
+    "processes": [
+        {
+            "procid": 28,
+            "procid_parent": 15,
+            "pid": 2408,
+            "ppid": 1264,
+            "cmd": "\"C:\\Users\\Admin\\AppData\\Local\\Temp\\0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45.exe\"",
+            "image": "C:\\Users\\Admin\\AppData\\Local\\Temp\\0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45.exe",
+            "orig": false,
+            "started": 234,
+            "terminated": 671
+        },
+        {
+            "procid": 29,
+            "procid_parent": 28,
+            "pid": 560,
+            "ppid": 2408,
+            "cmd": "C:\\Windows\\SysWOW64\\WerFault.exe -u -p 2408 -s 96",
+            "image": "C:\\Windows\\SysWOW64\\WerFault.exe",
+            "orig": true,
+            "started": 639
+        }
+    ],
+    "signatures": [
+        {
+            "label": "ramnit",
+            "name": "Ramnit",
+            "score": 10,
+            "tags": [
+                "trojan",
+                "spyware",
+                "stealer",
+                "worm",
+                "banker",
+                "family:ramnit"
+            ],
+            "desc": "Ramnit is a versatile family that holds viruses, worms, and Trojans."
+        },
+        {
+            "name": "Loads dropped DLL",
+            "score": 7,
+            "indicators": [
+                {
+                    "pid": 2408,
+                    "procid": 28
+                },
+                {
+                    "pid": 2408,
+                    "procid": 28
+                }
+            ]
+        },
+        {
+            "name": "UPX packed file",
+            "score": 7,
+            "tags": [
+                "upx"
+            ],
+            "indicators": [
+                {
+                    "resource": "behavioral1/memory/2408-54-0x0000000000400000-0x000000000042A000-memory.dmp",
+                    "yara_rule": "upx"
+                },
+                {
+                    "resource": "behavioral1/memory/2408-66-0x0000000000400000-0x000000000042A000-memory.dmp",
+                    "yara_rule": "upx"
+                }
+            ],
+            "desc": "Detects executables packed with UPX/modified UPX open source packer."
+        },
+        {
+            "label": "program_crash",
+            "name": "Program crash",
+            "score": 3,
+            "indicators": [
+                {
+                    "pid": 560,
+                    "procid": 29,
+                    "pid_target": 2408,
+                    "procid_target": 28
+                }
+            ]
+        }
+    ],
+    "tags": null,
+    "network": {},
+    "dumped": [
+        {
+            "at": 281,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-54-0x0000000000400000-0x000000000042A000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 4194304,
+            "length": 172032
+        },
+        {
+            "at": 359,
+            "pid": 2408,
+            "procid": 28,
+            "path": "\\Users\\Admin\\AppData\\Local\\Temp\\~TM190D.tmp",
+            "name": "files/0x000c0000000122d6-56.dat",
+            "kind": "martian",
+            "origin": "imgload",
+            "md5": "d124f55b9393c976963407dff51ffa79",
+            "sha1": "2c7bbedd79791bfb866898c85b504186db610b5d",
+            "sha256": "ea1e16247c848c8c171c4cd1fa17bc5a018a1fcb0c0dac25009066b6667b8eef",
+            "sha512": "278fe3a4b1fbbe700e4f4483b610133e975e36e101455661d5197bd892a68839b9d555499040d200c92aefa9e3819380e395c0cd85d5fc845c6364d128a8cf06",
+            "ssdeep": "24576:gwS6Xkd14PpBi6vPfdviHPZ2jslseW64AcECwA:lUd1ypBLPdmZ2Ox4AcECwA",
+            "size": 1292096
+        },
+        {
+            "at": 530,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-61-0x0000000077630000-0x0000000077632000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 2002976768,
+            "length": 8192
+        },
+        {
+            "at": 530,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-60-0x0000000077630000-0x0000000077631000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 2002976768,
+            "length": 4096
+        },
+        {
+            "at": 530,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-58-0x000000007762F000-0x0000000077631000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 2002972672,
+            "length": 8192
+        },
+        {
+            "at": 546,
+            "pid": 2408,
+            "procid": 28,
+            "path": "\\Users\\Admin\\AppData\\Local\\Temp\\~TM19CA.tmp",
+            "name": "files/0x000d0000000122d6-63.dat",
+            "kind": "martian",
+            "origin": "imgload",
+            "md5": "9b98d47916ead4f69ef51b56b0c2323c",
+            "sha1": "290a80b4ded0efc0fd00816f373fcea81a521330",
+            "sha256": "96e0ae104c9662d0d20fdf59844c2d18334e5847b6c4fc7f8ce4b3b87f39887b",
+            "sha512": "68b67021f228d8d71df4deb0b6388558b2f935a6aa466a12199cd37ada47ee588ea407b278d190d3a498b0ef3f5f1a2573a469b7ea5561ab2e7055c45565fe94",
+            "ssdeep": "24576:N2PEQWsHunfuKH8CBlcODV3iNXm5llVi:kPEQBHuXH8W/V3isk",
+            "size": 1114112
+        },
+        {
+            "at": 702,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-67-0x0000000075DB0000-0x0000000075EC0000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 1977286656,
+            "length": 1114112
+        },
+        {
+            "at": 702,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-66-0x0000000000400000-0x000000000042A000-memory.dmp",
+            "kind": "region",
+            "origin": "pe_modified",
+            "addr": 4194304,
+            "length": 172032
+        },
+        {
+            "at": 717,
+            "pid": 2408,
+            "procid": 28,
+            "name": "memory/2408-65-0x0000000075DB0000-0x0000000075EC0000-memory.dmp",
+            "kind": "region",
+            "origin": "exception",
+            "addr": 1977286656,
+            "length": 1114112
+        }
+    ],
+    "extracted": [
+        {
+            "dumped_file": "memory/2408-66-0x0000000000400000-0x000000000042A000-memory.dmp",
+            "resource": "behavioral1/memory/2408-66-0x0000000000400000-0x000000000042A000-memory.dmp",
+            "config": {
+                "family": "ramnit",
+                "rule": "Ramnit"
+            }
+        }
+    ]
+}

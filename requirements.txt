@@ -1,0 +1,3 @@
+hatching-triage==0.2.0
+retrying==1.3.4
+assemblyline-service-utilities

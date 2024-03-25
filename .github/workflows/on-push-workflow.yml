@@ -1,0 +1,12 @@
+name: On Push Workflow
+
+on: push
+
+jobs:
+  build-and-push-image:
+    uses: ./.github/workflows/build-publish.yml
+    permissions:
+        contents: read
+        packages: write
+    with:
+      version_tag: ${{ github.ref_name }}

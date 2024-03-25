@@ -1,0 +1,226 @@
+{
+    "version": "0.2",
+    "sample": {
+        "sample": "230815-aaabbbccc1",
+        "kind": "file",
+        "size": 89088,
+        "target": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45"
+    },
+    "task": {
+        "task": "230815-aaabbbccc1-static1",
+        "target": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45"
+    },
+    "analysis": {
+        "reported": "2023-08-15T12:46:41Z",
+        "score": 10,
+        "tags": [
+            "upx",
+            "family:ramnit"
+        ]
+    },
+    "signatures": [
+        {
+            "name": "Ramnit family",
+            "score": 10,
+            "tags": [
+                "family:ramnit"
+            ]
+        },
+        {
+            "name": "UPX packed file",
+            "score": 7,
+            "tags": [
+                "upx"
+            ],
+            "indicators": [
+                {
+                    "resource": "sample",
+                    "yara_rule": "upx"
+                }
+            ],
+            "desc": "Detects executables packed with UPX/modified UPX open source packer."
+        },
+        {
+            "label": "unsigned_pe",
+            "name": "Unsigned PE",
+            "score": 3,
+            "indicators": [
+                {
+                    "resource": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45"
+                },
+                {
+                    "resource": "unpack001/out.upx"
+                }
+            ],
+            "desc": "Checks for missing Authenticode signature."
+        }
+    ],
+    "files": [
+        {
+            "filename": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45",
+            "filesize": 89088,
+            "md5": "8586cbd788ad8719aa0fd44d59125bac",
+            "sha1": "255ccab39b8fac3f9ae60a87acdc0a97e9b7e3f4",
+            "sha256": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45",
+            "sha512": "c53ad835ca1fc8c76405e47aa5acad0d73f3417b145b477bbe928731a4fcd45f97f47f4a069af7f4854875048e7b0c8ab90079f2686b19ca868a31238d9d1f29",
+            "ssdeep": "1536:LMILTrdNEMIXWpbh7lvC19/eWR7+rdZTXqbV2TB9074yNYDelnPRJ:LM+IbSBlvC53R7+zabcl907Y6lP/",
+            "exts": [
+                ".exe"
+            ],
+            "tags": [
+                "windows",
+                "x86"
+            ],
+            "depth": 0,
+            "kind": "file",
+            "selected": true,
+            "runas": "0d0fbac963ae6b697d160273d4b51082d7079559b3ab12b13607f18bf77f8b45.exe",
+            "metadata": {
+                "pe": {
+                    "timestamp": 1295878626,
+                    "sections": [
+                        {
+                            "name": "UPX0",
+                            "offset": 1024,
+                            "virtual_size": 98304,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_UNINITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_EXECUTE",
+                                "IMAGE_SCN_MEM_READ",
+                                "IMAGE_SCN_MEM_WRITE"
+                            ]
+                        },
+                        {
+                            "name": "UPX1",
+                            "offset": 1024,
+                            "virtual_size": 65536,
+                            "size": 62464,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_INITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_EXECUTE",
+                                "IMAGE_SCN_MEM_READ",
+                                "IMAGE_SCN_MEM_WRITE"
+                            ]
+                        },
+                        {
+                            "name": ".rsrc",
+                            "offset": 63488,
+                            "virtual_size": 4096,
+                            "size": 2048,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_INITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_READ",
+                                "IMAGE_SCN_MEM_WRITE"
+                            ]
+                        }
+                    ],
+                    "header": {
+                        "entry_point": 164240,
+                        "magic_number": 267,
+                        "file_characteristics": [
+                            "IMAGE_FILE_RELOCS_STRIPPED",
+                            "IMAGE_FILE_EXECUTABLE_IMAGE",
+                            "IMAGE_FILE_LINE_NUMS_STRIPPED",
+                            "IMAGE_FILE_LOCAL_SYMS_STRIPPED",
+                            "IMAGE_FILE_32BIT_MACHINE"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "filename": "out.upx",
+            "relpath": "unpack001/out.upx",
+            "filesize": 145408,
+            "md5": "1a212fd358ae307025e1a72dd35285c5",
+            "sha1": "e6033822d31b25e93a372c922d88e533202ec72d",
+            "sha256": "7af592a14890496692dabda99049783c48b437d7aafdc5bdce208365c1703825",
+            "sha512": "c7e2ee375855bae418d03ef4260d92c2b62711d073dee7caf2f20efccf38de27bb6b442480faadb9a5a34174b7fb30f8274348968d676cbfeec89f4173d2e07d",
+            "ssdeep": "3072:DjnA7MbIWiyr7pjvTooBFEbWwIUclTBft3+oT:/A7CIWiyr7JHn17lTBl3+o",
+            "exts": [
+                ".exe"
+            ],
+            "tags": [
+                "windows",
+                "x86"
+            ],
+            "depth": 1,
+            "kind": "file",
+            "selected": false,
+            "runas": "out.exe",
+            "metadata": {
+                "pe": {
+                    "timestamp": 1295878626,
+                    "sections": [
+                        {
+                            "name": ".text",
+                            "offset": 1024,
+                            "virtual_size": 8844,
+                            "size": 9216,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_CODE",
+                                "IMAGE_SCN_MEM_EXECUTE",
+                                "IMAGE_SCN_MEM_READ"
+                            ]
+                        },
+                        {
+                            "name": ".rdata",
+                            "offset": 10240,
+                            "virtual_size": 1452,
+                            "size": 1536,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_INITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_READ"
+                            ]
+                        },
+                        {
+                            "name": ".data",
+                            "offset": 11776,
+                            "virtual_size": 132489,
+                            "size": 131584,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_INITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_READ",
+                                "IMAGE_SCN_MEM_WRITE"
+                            ]
+                        },
+                        {
+                            "name": ".rsrc",
+                            "offset": 143360,
+                            "virtual_size": 1720,
+                            "size": 2048,
+                            "characteristics": [
+                                "IMAGE_SCN_CNT_INITIALIZED_DATA",
+                                "IMAGE_SCN_MEM_READ",
+                                "IMAGE_SCN_MEM_WRITE"
+                            ]
+                        }
+                    ],
+                    "header": {
+                        "entry_point": 12369,
+                        "magic_number": 267,
+                        "file_characteristics": [
+                            "IMAGE_FILE_RELOCS_STRIPPED",
+                            "IMAGE_FILE_EXECUTABLE_IMAGE",
+                            "IMAGE_FILE_LINE_NUMS_STRIPPED",
+                            "IMAGE_FILE_LOCAL_SYMS_STRIPPED",
+                            "IMAGE_FILE_32BIT_MACHINE"
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "unpack_count": 1,
+    "error_count": 0,
+    "extracted": [
+        {
+            "dumped_file": "out.upx",
+            "resource": "static1/unpack001/out.upx",
+            "config": {
+                "family": "ramnit",
+                "rule": "Ramnit"
+            }
+        }
+    ]
+}

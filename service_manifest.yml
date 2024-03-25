@@ -1,0 +1,147 @@
+name: Hatching
+version: $SERVICE_TAG
+description: AL4 service that integrates with a Hatching Sandbox instance.
+
+# Regex defining the types of files the service accepts and rejects
+accepts: executable/(windows|linux|mach\-o)|android/(dex|apk)|java/(class|jar)|audiovisual|document/(installer/windows|office/(excel|ole|powerpoint|rtf|unknown|word|mhtml|onenote)|pdf$)|code/(javascript|jscript|python|vbs|wsf|html|ps1|batch|hta|vbe)|shortcut/windows|audiovisual/flash
+rejects: empty|metadata/.*
+
+# At which stage the service should run (one of FILTER, EXTRACT, CORE, SECONDARY, POST)
+# NOTE: Stages are executed in the order defined in the list
+stage: CORE
+# Which category the service is part of (one of Antivirus, Dynamic Analysis, External, Extraction, Filtering, Networking, Static Analysis)
+category: Dynamic Analysis
+
+# Does the service require access to the file to perform its task
+# If set to false, the service will only have access to the file metadata (e.g. Hashes, size, type, ...)
+file_required: true
+
+# Maximum execution time the service has before it's considered to be timed out
+timeout: 800
+
+## Does the service force the caching of results to be disabled
+## (only use for service that will always provide different results each run)
+#disable_cache: false
+
+# is the service enabled by default
+enabled: false
+
+# does the service make APIs call to other products not part of the assemblyline infrastructure (e.g. VirusTotal, ...)
+is_external: true
+
+# Number of concurrent services allowed to run at the same time
+#licence_count: 10
+
+config:
+  host_config:
+    # Note: Public instance defaults. Update to private instance if applicable.
+    web_url: "https://tria.ge"
+    api_url: "https://tria.ge/api"
+    api_key: "<sample>"
+
+  # When auto-detect-platform is selected under the vm_profile submission parameter, the service will determine which
+  # platform to submit to. It will then submit to all vm-profiles listed here for that selected platform.
+  vm_profile_autodetect_map:
+    windows: ["win-profile",] 
+    macos: ["macos-profile",]
+    linux: ["linux-profile",]
+    android: ["android-profile",]
+    default: ["win-profile",]
+
+  # At a max file-depth of X, do not fully run this service. i.e. skip submitting the file to the Hatching API.
+  # If the submission indicates ignore_dynamic_recursion_prevention=True, it's possible for the dumped files being
+  # downloaded from Hatching for a given submission, which are then added back to the pipeline for analysis, to cause
+  # a never-ending recursive analysis loop. This would eat up a user's quota very quickly. This will prevent that
+  # situation by not allowing any files above the specified depth from being submitted to Hatching service.
+  max_file_depth_short_circuit: 10
+
+submission_params:
+  
+  # List the vm profiles that a user should be able to select.
+  # These vm profiles must be available in the Hatching platform with the exception of auto-detect-platform.
+  # If the value 'auto-detect-platform' is selected, it will use the config.vm_profile_auto_detect_map to map to the 
+  # appropriate profile.
+  - default: "auto-detect-platform"
+    name: vm_profile
+    type: list
+    value: "auto-detect-platform"
+    list: ["auto-detect-platform", "win-profile", "macos-profile", "linux-profile", "android-profile"]
+
+  # The memory dump extraction will happen in Hatching regardless of this option.
+  # This just indicates whether the memory dumps will be added back into the pipeline for analysis
+  - default: true
+    name: analyze_extracted_memory_dumps
+    type: bool
+    value: true
+
+heuristics:
+  # Overall scoring classification from Hatching - heuristics 2-6
+  - heur_id: 2
+    name: File is malicious
+    score: 1000
+    filetype: .*
+    description: Hatching considers this file to be known bad.
+  - heur_id: 3
+    name: File is likely malicious
+    score: 800
+    filetype: .*
+    description: Hatching considers this file to be likely malicious.
+  - heur_id: 4
+    name: File shows suspicious behavior
+    score: 600
+    filetype: .*
+    description: Hatching considers this file to show suspicious behavior.
+  - heur_id: 5
+    name: File is likely benign
+    score: 0
+    filetype: .*
+    description: Hatching considers this file to be likely benign.
+  - heur_id: 6
+    name: No potentially malicious behavior detected
+    score: 0
+    filetype: .*
+    description: Hatching considers this file to show no signs of malicious behavior.
+  
+  # Malware Config
+  - heur_id: 100
+    name: Malware Config Extracted
+    score: 1000
+    filetype: '*'
+    description: Malware Config Extracted
+  - heur_id: 101
+    name: Ransom Note Extracted
+    score: 1000
+    filetype: '*'
+    description: Ransom Note Extracted
+  - heur_id: 102
+    name: Dropper Extracted
+    score: 1000
+    filetype: '*'
+    description: Dropper Extracted
+  - heur_id: 103
+    name: Credentials Extracted
+    score: 0
+    filetype: '*'
+    description: Credentials Extracted
+
+  # Custom Detections
+  - heur_id: 200
+    name: Domain fronting detected
+    score: 500
+    filetype: '*'
+    description: Domain fronting detected
+
+  # This is used for all hatching Dynamic/Static analysis Signatures found.
+  # Since Hatching is closed-source, there is no known list of all Hatching signatures to map to.
+  - heur_id: 300
+    name: Hatching Signature
+    score: 0
+    filetype: '*'
+    description: All Hatching signatures currently map to this heuristic
+
+docker_config:
+  image: ghcr.io/usaa/assemblyline-service-hatching-triage:$SERVICE_TAG
+  cpu_cores: 1.0
+  ram_mb_min: 512
+  ram_mb: 1024
+  allow_internet_access: true

@@ -1,0 +1,47 @@
+name: Auto Tag
+
+on: 
+  workflow_call:
+    outputs:
+      new_stable_tag:
+        description: "New Stable tag. e.g. v4.5.0.stable2"
+        value: ${{ jobs.auto-tag.outputs.new_stable_tag }}
+    
+jobs:
+  
+  auto-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_stable_tag: ${{ steps.generate-tag.outputs.new_stable_tag }}  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Generate Tag
+        id: generate-tag
+        run: |
+          # Get the latest stable tag and increment it
+          latest_stable_tag=$(git tag --list *stable* --sort=-version:refname |  head -n1)
+          tag_base=$(echo $latest_stable_tag | sed 's/[0-9]\+$//')
+          latest_version=$(echo $latest_stable_tag | grep -oE '[0-9]+$')
+        
+          if [ -z $latest_version ]; then
+            new_version=0
+          else
+            new_version=$((latest_version +1))
+          fi
+
+          new_stable_tag="${tag_base}${new_version}"
+
+          echo new_stable_tag=$new_stable_tag
+          echo "new_stable_tag=$new_stable_tag" >> $GITHUB_OUTPUT
+      - name: Push New Stable Tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          new_stable_tag=${{ steps.generate-tag.outputs.new_stable_tag }}
+          git tag -a $new_stable_tag -m "Re-building to stay lemony fresh."
+          git push origin $new_stable_tag

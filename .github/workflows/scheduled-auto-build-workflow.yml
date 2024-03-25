@@ -1,0 +1,24 @@
+name: Scheduled Tag and Build Workflow
+
+# This workflow creates a new stable tag and then builds and publishes the image.
+# Note: scheduled workflows only run in the default branch
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  auto-tag:
+    uses: ./.github/workflows/auto-tag.yml
+    permissions:
+      contents: write
+
+  build-and-push-image:
+    uses: ./.github/workflows/build-publish.yml
+    needs: [auto-tag]
+    permissions:
+      contents: read
+      packages: write
+    with:
+      version_tag: ${{ needs.auto-tag.outputs.new_stable_tag }}
+

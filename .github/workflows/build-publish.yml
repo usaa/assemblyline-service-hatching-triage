@@ -1,0 +1,77 @@
+name: Create and publish image
+
+on: 
+  workflow_call:
+    inputs:
+      version_tag:
+        description: "Tag to represent the version. e.g. v4.5.0.stable1, v4.5.0.dev2, <branchname>"
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    uses: ./.github/workflows/build-test.yml
+
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    needs: [test]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Determine Image Build Variables
+        id: determine-vars
+        run: |
+          basetag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          base_version="4.5.0"
+          default_version="${base_version}.dev0"
+          al4_version=$default_version
+
+          version_tag=${{ inputs.version_tag }}
+          echo "version_tag=$version_tag"
+          
+          # Set tags accordingly
+          if [[ $version_tag == "v${base_version}.stable"* ]] || [[ $version_tag == "v${base_version}.dev"* ]]; then
+
+            # remove the v prefix
+            al4_version=${version_tag#v}
+
+            tags="${basetag}:latest,${basetag}:4.5.latest,${basetag}:${al4_version}"
+
+            if [[ $version_tag == "v${base_version}.stable"* ]]; then
+              tags="${tags},${basetag}:4.5.stable"
+            fi
+          else
+            tags="${basetag}:latest"
+          fi
+          
+          echo "AL4_BRANCH=stable" >> $GITHUB_OUTPUT
+          echo "AL4_VERSION=$al4_version" >> $GITHUB_OUTPUT
+          echo "IMG_TAGS=$tags" >> $GITHUB_OUTPUT
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+           version=${{ steps.determine-vars.outputs.AL4_VERSION }}
+           branch=${{ steps.determine-vars.outputs.AL4_BRANCH }}
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }},${{ steps.determine-vars.outputs.IMG_TAGS }}
+          labels: ${{ steps.meta.outputs.labels }}
