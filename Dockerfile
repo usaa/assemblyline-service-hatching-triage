@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir --user --requirement requirements.txt && rm -rf ~
 
 # Copy service code
 WORKDIR /opt/al_service
-COPY hatching .
+COPY hatching hatching
 COPY service_manifest.yml .
 
 # Patch version in manifest
