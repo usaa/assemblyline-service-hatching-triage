@@ -1,7 +1,7 @@
 ARG branch=stable
 FROM cccs/assemblyline-v4-service-base:$branch
 
-ENV SERVICE_PATH hatching.Hatching
+ENV SERVICE_PATH hatching.hatching.Hatching
 
 USER assemblyline
 
