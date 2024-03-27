@@ -1,7 +1,7 @@
 ARG branch=stable
 FROM cccs/assemblyline-v4-service-base:$branch
 
-ENV SERVICE_PATH hatching.Hatching
+ENV SERVICE_PATH hatching.hatching.Hatching
 
 USER assemblyline
 
@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir --user --requirement requirements.txt && rm -rf ~
 
 # Copy service code
 WORKDIR /opt/al_service
-COPY hatching .
+COPY hatching hatching
 COPY service_manifest.yml .
 
 # Patch version in manifest
