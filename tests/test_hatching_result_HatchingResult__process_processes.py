@@ -93,6 +93,8 @@ def test_process_processes(hatching_result_instance: hatching_result_instance, m
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
         {
             "objectid": {
@@ -124,6 +126,8 @@ def test_process_processes(hatching_result_instance: hatching_result_instance, m
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
         {
             "objectid": {
@@ -155,6 +159,8 @@ def test_process_processes(hatching_result_instance: hatching_result_instance, m
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
     ]
 
@@ -253,6 +259,8 @@ def test_process_processes_filtered(
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
     ]
 
@@ -396,6 +404,8 @@ def test_process_processes_missing_and_diff_input(
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
         {
             "objectid": {
@@ -418,6 +428,8 @@ def test_process_processes_missing_and_diff_input(
             "integrity_level": None,
             "image_hash": None,
             "original_file_name": None,
+            "loaded_modules": None,
+            "services_involved": None
         },
     ]
 

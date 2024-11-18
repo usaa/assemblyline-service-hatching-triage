@@ -9,6 +9,7 @@ from re import match as re_match, IGNORECASE
 from urllib.parse import urlparse
 
 from assemblyline.common.attack_map import attack_map
+from assemblyline.common import forge
 from assemblyline.common import log as al_log
 from assemblyline.common.net import (
     is_valid_domain,
@@ -63,7 +64,7 @@ HATCHING_TO_AL_SCORE_MAP = {
     9: 800,
     10: 1000,
 }
-
+Classification = forge.get_classification()
 
 class HatchingResult:
     """Class to create service results from Hatching API output."""
@@ -1555,6 +1556,7 @@ class HatchingResult:
                 score=al4_score,
                 malware_families=mal_families,
                 attacks=attacks,
+                classification = Classification.UNRESTRICTED,
             )
 
             sig_dicts.append({"hatching_sig": hsig, "ontres_sig": ontres_sig})
