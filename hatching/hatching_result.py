@@ -1,37 +1,28 @@
 """Hatching Results Generation module."""
 
-import json
 import datetime
+import json
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Set, Tuple
 from logging import getLogger
-from re import match as re_match, IGNORECASE
+from re import IGNORECASE
+from re import match as re_match
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 from urllib.parse import urlparse
 
-from assemblyline.common.attack_map import attack_map
 from assemblyline.common import forge
 from assemblyline.common import log as al_log
+from assemblyline.common.attack_map import attack_map
+from assemblyline.common.isotime import LOCAL_FMT_WITH_MS, format_time
 from assemblyline.common.net import (
     is_valid_domain,
     is_valid_email,
     is_valid_ip,
     is_valid_port,
 )
-from assemblyline.common.isotime import format_time, LOCAL_FMT_WITH_MS
 from assemblyline.common.str_utils import safe_str
 from assemblyline.odm.models.ontology.results import Process as ProcessModel
 from assemblyline.odm.models.ontology.results import Sandbox as SandboxModel
 from assemblyline.odm.models.ontology.results import Signature as SignatureModel
-from assemblyline_v4_service.common.result import (
-    BODY_FORMAT,
-    Result,
-    ResultSection,
-    ResultKeyValueSection,
-    ResultMultiSection,
-    ResultProcessTreeSection,
-    ResultTableSection,
-    TableRow,
-)
 from assemblyline_service_utilities.common.dynamic_service_helper import (
     OntologyResults,
     Process,
@@ -40,7 +31,15 @@ from assemblyline_service_utilities.common.dynamic_service_helper import (
 )
 from assemblyline_service_utilities.common.safelist_helper import is_tag_safelisted
 from assemblyline_service_utilities.common.tag_helper import add_tag
-
+from assemblyline_v4_service.common.result import (
+    BODY_FORMAT,
+    Result,
+    ResultKeyValueSection,
+    ResultProcessTreeSection,
+    ResultSection,
+    ResultTableSection,
+    TableRow,
+)
 
 RE_HTTP_HOST_HEADER = r"host: "
 RE_HTTP_USER_AGENT_HEADER = r"user-agent: "
@@ -66,6 +65,7 @@ HATCHING_TO_AL_SCORE_MAP = {
 }
 Classification = forge.get_classification()
 
+
 class HatchingResult:
     """Class to create service results from Hatching API output."""
 
@@ -75,7 +75,7 @@ class HatchingResult:
         ontres: OntologyResults,
         web_url: str,
         sample_id: str,
-        safelist: Dict[str, Dict[str, List[str]]] = {},
+        safelist: Optional[Dict[str, Dict[str, List[str]]]] = None,
     ):
         """Initialize.
 
@@ -89,7 +89,7 @@ class HatchingResult:
             ontres (OntologyResults): OntologyResults instance
             web_url (str): Hatching API endpoint URL
             sample_id (str): Hatching Result Sample ID for a given submission
-            safelist (Dict[str, Dict[str, List[str]]], optional): Expects the AL4 System safelist. Defaults to None.
+            safelist (Dict[str, Dict[str, List[str]]]): Expects the AL4 System safelist.
         """
         self.hatching_results = hatching_results
         self.ontres = ontres
@@ -256,7 +256,8 @@ class HatchingResult:
         This contains a sub-section per extracted type. Configs, RansomNote, Dropper, Credentials.
 
         Args:
-            extracted_items (List[Dict[str, Any]]): The extracted items from a triage or static analysis report
+            extracted_items (List[Dict[str, Any]]): The extracted items from a triage or static
+                analysis report
             static_analysis (bool): Whether this is a static analysis or not
 
         Returns:
@@ -312,7 +313,7 @@ class HatchingResult:
     def _build_malware_extract_config_sub_section(
         self, malware_config: Dict[str, Any], is_static_analysis: bool = True
     ) -> Optional[ResultKeyValueSection]:
-        """Build a KeyValue section based on the RansomNote extracted from the malware analysis reports.
+        """Build a KeyValue section based on the RansomNote extracted from the reports.
 
         This handles both static and dynamic anlaysis scenarios.
 
@@ -321,7 +322,7 @@ class HatchingResult:
 
         Args:
             malware_config (Dict[str, Any]): The config key from the report.extracted[] dicts
-            is_static_analysis (bool, optional): Whether this is a static analysis report or not. Defaults to True.
+            is_static_analysis (bool, optional): Whether this is a static analysis report or not.
 
         Returns:
             Optional[ResultKeyValueSection]:
@@ -398,7 +399,7 @@ class HatchingResult:
     def _build_malware_extract_credentials_sub_section(
         self, credentials: Dict[str, Any], is_static_analysis: bool = True
     ) -> Optional[ResultKeyValueSection]:
-        """Build a KeyValue section based on the Credentials info extracted from the malware analysis reports.
+        """Build a KeyValue section based on the Credentials info extracted from the reports.
 
         This handles both static and dynamic anlaysis scenarios.
 
@@ -407,7 +408,7 @@ class HatchingResult:
 
         Args:
             credentials (Dict[str, Any]): The credentials key from the report.extracted[] dicts
-            is_static_analysis (bool, optional): Whether this is a static analysis report or not. Defaults to True.
+            is_static_analysis (bool, optional): Whether this is a static analysis report or not.
 
         Returns:
             Optional[ResultKeyValueSection]:
@@ -470,7 +471,7 @@ class HatchingResult:
     def _build_malware_extract_dropper_sub_section(
         self, dropper: Dict[str, Any], is_static_analysis: bool = True
     ) -> Optional[ResultKeyValueSection]:
-        """Build a KeyValue section based on the Dropper info extracted from the malware analysis reports.
+        """Build a KeyValue section based on the Dropper info extracted from the reports.
 
         This handles both static and dynamic anlaysis scenarios.
 
@@ -479,7 +480,7 @@ class HatchingResult:
 
         Args:
             dropper (Dict[str, Any]): The dropper key from the report.extracted[] dicts
-            is_static_analysis (bool, optional): Whether this is a static analysis report or not. Defaults to True.
+            is_static_analysis (bool, optional): Whether this is a static analysis report or not.
 
         Returns:
             Optional[ResultKeyValueSection]:
@@ -520,7 +521,7 @@ class HatchingResult:
     def _build_malware_extract_ransomnote_sub_section(
         self, ransom_note: Dict[str, Any], is_static_analysis: bool = True
     ) -> Optional[ResultKeyValueSection]:
-        """Build a KeyValue section based on the Configs extracted from the malware analysis reports.
+        """Build a KeyValue section based on the Configs extracted from the reports.
 
         This handles both static and dynamic anlaysis scenarios.
 
@@ -529,7 +530,7 @@ class HatchingResult:
 
         Args:
             ransom_note (Dict[str, Any]): The ransom_note key from the report.extracted[] dicts
-            is_static_analysis (bool, optional): Whether this is a static analysis report or not. Defaults to True.
+            is_static_analysis (bool, optional): Whether this is a static analysis report or not.
 
         Returns:
             Optional[ResultKeyValueSection]:
@@ -581,7 +582,8 @@ class HatchingResult:
         """Build the Network Section.
 
         Args:
-            hatching_network (Dict[str, Any]): The network section of a given dynamic triage report's api results
+            hatching_network (Dict[str, Any]): The network section of a given dynamic triage
+                report's api results
 
         Returns:
             Optional[ResultSection]: A ResultSection or None if no network sub-sections are created.
@@ -591,9 +593,9 @@ class HatchingResult:
 
         res = ResultSection("Network")
 
-        # As iocs are evaluated when processing the dns and http-traffic, if they are considered safelisted, then the
-        # associated network flow id is added to this list. It's used as input when processing the network flows
-        # themselves.
+        # As iocs are evaluated when processing the dns and http-traffic, if they are considered
+        # safelisted, then the associated network flow id is added to this list. It's used as input
+        # when processing the network flows themselves.
         filtered_flow_ids: Set[int] = set()
 
         # process dns traffic
@@ -633,7 +635,7 @@ class HatchingResult:
 
     def _build_network_dns_sub_section(
         self, dns_map: Dict[str, Any]
-    ) -> Optional[ResultMultiSection]:
+    ) -> Optional[ResultTableSection]:
         """Build the Network DNS sub-section.
 
         This creates a table view of the domain and associated IP resolutions and creates tags for:
@@ -683,7 +685,8 @@ class HatchingResult:
                 )
 
                 # Annotate the resolved IP if it is in the 100.64.0.0/10 IP space
-                # Hatching uses this network when the simulate network response option is used. See RFC 6598
+                # Hatching uses this network when the simulate network response option is used.
+                # See RFC 6598
                 if re_match(RE_HATCHING_SVC_PRIVATE_IP, ip):
                     annotated_resolved_ips.append(f"{ip} (Hatching Simulated Network)")
                 else:
@@ -797,14 +800,14 @@ class HatchingResult:
     ) -> Optional[ResultSection]:
         """Build the Network HTTP Traffic sub-section.
 
-        This will create multiple sub-sections based on the input for extracted URIs, extracted User Agents, and
-        possible domain-fronting activity.
+        This will create multiple sub-sections based on the input for extracted URIs, extracted
+        User Agents, and possible domain-fronting activity.
 
-        The following tags are created: network.dynamic.uri, network.user_agent, and possibly others.
+        The following tags are created: network.dynamic.uri, network.user_agent and possibly others.
 
         There is one heuristic created if domain-fronting is observed.
 
-        Note: The http_response.response field from the Hatching API does not have the full http response.
+        The http_response.response field from the Hatching API does not have the full http response.
         Example response. "response": "HTTP/2.0 302"
 
         Args:
@@ -907,7 +910,7 @@ class HatchingResult:
 
     def _build_overview_section(
         self, overview: Dict[str, Any]
-    ) -> ResultKeyValueSection:
+    ) -> Optional[ResultKeyValueSection]:
         """Build the Overview section.
 
         This section will set a heuristic based on the Hatching overall score.
@@ -916,7 +919,7 @@ class HatchingResult:
             overview (Dict[str, Any]): The hatching overview api results.
 
         Returns:
-            ResultKeyValueSection:
+            Optional[ResultKeyValueSection]:
         """
         if overview:
             start_time = overview.get("sample", {}).get("created")
@@ -952,7 +955,8 @@ class HatchingResult:
         """Build the Processes Section.
 
         Args:
-            hatching_procs (List[Dict[str, Any]]): The processes section of a given dynamic triage report's api results
+            hatching_procs (List[Dict[str, Any]]): The processes section of a given dynamic triage
+                report's api results
 
         Returns:
             Optional[ResultProcessTreeSection]: A ResultProcessTreeSection or None
@@ -976,9 +980,10 @@ class HatchingResult:
     def _build_sig_section(
         self, signatures: List[Dict[str, Any]]
     ) -> Optional[ResultSection]:
-        """Build the Hatching generated signatures section. This handles both static and dynamic analysis scenarios.
+        """Build the Hatching generated signatures section.
 
-        This contains a sub-section per observed signature.
+        This handles both static and dynamic analysis scenarios and contains a sub-section per
+        observed signature.
 
         Args:
             signatures (List[Dict[str, Any]]): Hatching results signatures
@@ -991,17 +996,19 @@ class HatchingResult:
 
         res = ResultSection("Signatures")
 
-        sig_dicts = self._process_sigs(signatures)
+        sig_dicts: List[Dict[str, Dict[str, Any]]] = self._process_sigs(signatures)
 
         for sigd in sig_dicts:
-            sig_res = self._build_sig_sub_section(
-                ontres_sig=sigd.get("ontres_sig", {}),
-                hatching_sig=sigd.get("hatching_sig", {}),
-            )
+            ontres_sig: Signature = cast(Signature, sigd.get("ontres_sig"))
+            if ontres_sig:
+                sig_res = self._build_sig_sub_section(
+                    ontres_sig=ontres_sig,
+                    hatching_sig=sigd.get("hatching_sig", {}),
+                )
 
-            if sig_res:
-                self.ontres.add_signature(sigd.get("ontres_sig"))
-                res.add_subsection(sig_res)
+                if sig_res:
+                    self.ontres.add_signature(ontres_sig)
+                    res.add_subsection(sig_res)
 
         if res.subsections:
             return res
@@ -1030,7 +1037,7 @@ class HatchingResult:
         if not ontres_sig or not hatching_sig:
             return None
 
-        res = ResultKeyValueSection(f"Signature: {ontres_sig.name}")
+        res = ResultKeyValueSection(f"Signature: {ontres_sig.name}")  # type: ignore
 
         score = hatching_sig.get("score")
         if score:
@@ -1045,11 +1052,13 @@ class HatchingResult:
         res.update_items(body)
 
         # Set the Heuristic
-        # Signature approach Chosen: Use a generic heuristic Id and map it to a Signature/Score/Attack IDs
+        # Signature approach Chosen: Use a generic heuristic Id and map it to a
+        #  Signature/Score/Attack IDs
         res.set_heuristic(300)
         # adding sig and score
         res.heuristic.add_signature_id(
-            ontres_sig.name, HATCHING_TO_AL_SCORE_MAP[hatching_sig.get("score", 0)]
+            ontres_sig.name,  # type: ignore
+            HATCHING_TO_AL_SCORE_MAP[hatching_sig.get("score", 0)],
         )
 
         # attack ids / ttps
@@ -1136,11 +1145,13 @@ class HatchingResult:
     ) -> Tuple[Dict[str, Any], List[int]]:
         """Process Hatching network DNS results from a given dynamic analysis triage report.
 
-        If the domain or ip is in the safelist, it will not be in the response and will be added to the
-        filtered flows returned. in-addr-.arpa lookups for private IPs are also filtered as this is just noise.
+        If the domain or ip is in the safelist, it will not be in the response and will be added to
+        the filtered flows returned. in-addr-.arpa lookups for private IPs are also filtered as this
+        is just noise.
 
         Args:
-            hatching_network (Dict[str, Any]): DNS results from a Hatching dynamic analysis triage report
+            hatching_network (Dict[str, Any]): DNS results from a Hatching dynamic analysis triage
+                report
 
         Returns:
             Dict[str, Any]:
@@ -1152,10 +1163,11 @@ class HatchingResult:
                     },
                     # There may be IPs in this list that are not in domain_map
                     "observed_ips": List,
-                    # There may be domains requested that have no response therefore won't be in the domain_map
+                    # There may be domains requested that have no response therefore won't be in the
+                    #  domain_map
                     "observed_domains": List
                 },
-            List[int]: List of flow ids observed to have safelisted domains or ips or is filtered out
+            List[int]: List of flow ids observed to have safelisted domains, ips, or is filtered out
         """
         dns_map: Dict[str, Any] = {
             "domain_map": {},
@@ -1163,7 +1175,7 @@ class HatchingResult:
             "observed_domains": [],
         }
 
-        # Any time a domain is identified as being in the safelist or is filtered, add it to this list
+        # Any time a domain is identified as being in the safelist or is filtered, add it to list
         filtered_flow_ids: List[int] = []
 
         # Start by capturing all of the domains requested.
@@ -1207,8 +1219,8 @@ class HatchingResult:
                                 dns_map["domain_map"][dom] = []
 
                             for ip in dns_resp.get("ip", []):
-                                # purposefully not adding the flow to the safelist as there could be other IPs
-                                # returned in this list that are not safelisted.
+                                # purposefully not adding the flow to the safelist as there could be
+                                # other IPs returned in this list that are not safelisted.
                                 if ip not in dns_map["domain_map"][dom]:
                                     dns_map["domain_map"][dom].append(ip)
 
@@ -1238,7 +1250,8 @@ class HatchingResult:
         Observed uris in the safelist will be filtered from the response.
 
         Args:
-            hatching_network (Dict[str, Any]): Network traffic from a Hatching dynamic analysis triage report
+            hatching_network (Dict[str, Any]): Network traffic from a Hatching dynamic analysis
+                triage report
 
         Returns:
             Dict[str, Dict[str, Any]]]: Normalized http traffic structure
@@ -1322,7 +1335,7 @@ class HatchingResult:
                     # Setting the headers to the new/filtered structure
                     http_traffic[flow_id]["http_request"]["headers"] = new_headers
 
-            # do not process flow ids that have been safelisted after going through the http requests
+            # do not process flows that have been safelisted after going through the http requests
             elif http_resp and flow_id not in filtered_flow_ids:
                 # init the flow_id key
                 if not http_traffic.get(flow_id):
@@ -1330,7 +1343,8 @@ class HatchingResult:
 
                 http_traffic[flow_id]["http_response"] = http_resp
 
-        # remove any safelisted flow ids from the final dict (could have made it in if things out of order)
+        # remove any safelisted flow ids from the final dict
+        #  could have made it in if things out of order
         for safe_flow_id in filtered_flow_ids:
             _ = http_traffic.pop(safe_flow_id, None)  # type: ignore
 
@@ -1379,9 +1393,9 @@ class HatchingResult:
             for flow in hatching_network.get("flows", []):
                 if flow.get("id") in filtered_flow_ids:
                     continue
-                else:
-                    # consider further filtering. e.g. dst RFC1918
-                    network_flows.append(flow)
+
+                # consider further filtering. e.g. dst RFC1918
+                network_flows.append(flow)
 
         return network_flows
 
@@ -1394,32 +1408,29 @@ class HatchingResult:
         The procs will be updated on the ontres.
 
         Args:
-            param hatching_procs (List[Dict[str, Any]]): The processes section of a given dynamic triage report's api
-            results
+            param hatching_procs (List[Dict[str, Any]]): The processes section of a given dynamic
+             triage report's api results
 
         Returns:
             None
         """
         proc_start_time = datetime.datetime.utcnow()
 
-        session = self.ontres.sandboxes[-1].objectid.session
+        session = self.ontres.sandboxes[-1].objectid.session  # type: ignore
         for proc in hatching_procs:
-            """
-            Hatching process def
-
-            Process struct {
-                ProcID       int32       `json:"procid,omitempty"`
-                ParentProcID int32       `json:"procid_parent,omitempty"`
-                PID          uint64      `json:"pid"`
-                PPID         uint64      `json:"ppid"`
-                Cmd          interface{} `json:"cmd"`
-                Image        string      `json:"image,omitempty"`
-                Orig         bool        `json:"orig"` - This indicates whether the file was already present on the VM
-                System       bool        `json:"-"`
-                Started      uint32      `json:"started"`
-                Terminated   uint32      `json:"terminated,omitempty"`
-            }
-            """
+            # Hatching process def
+            # Process struct {
+            #     ProcID       int32       `json:"procid,omitempty"`
+            #     ParentProcID int32       `json:"procid_parent,omitempty"`
+            #     PID          uint64      `json:"pid"`
+            #     PPID         uint64      `json:"ppid"`
+            #     Cmd          interface{} `json:"cmd"`
+            #     Image        string      `json:"image,omitempty"`
+            #     Orig         bool        `json:"orig"` - This indicates whether the file was already present on the VM
+            #     System       bool        `json:"-"`
+            #     Started      uint32      `json:"started"`
+            #     Terminated   uint32      `json:"terminated,omitempty"`
+            # }
 
             image = proc.get("image", "")
             command_line = proc.get("cmd", "")
@@ -1453,8 +1464,8 @@ class HatchingResult:
                     date_format=LOCAL_FMT_WITH_MS,
                 )
 
-            pid = proc.get("pid")
-            ppid = proc.get("ppid")
+            pid: int = int(proc.get("pid", 0))
+            ppid: int = int(proc.get("ppid", 0))
 
             p_oid = ProcessModel.get_oid(
                 {
@@ -1490,7 +1501,8 @@ class HatchingResult:
             hatching_sigs (List[dict]): list of hatching signatures
 
         Returns:
-            List[Dict[str, Any]]: List of dicts containing the original hatching sig and an OntologyResult signature
+            List[Dict[str, Any]]: List of dicts containing the original hatching sig and an
+                OntologyResult signature
                 [
                     {
                         "hatching_sig": dict,
@@ -1546,7 +1558,7 @@ class HatchingResult:
                         attack_id,
                     )
 
-            ontres_sig = self.ontres.create_signature(
+            ontres_sig: Signature = self.ontres.create_signature(
                 objectid=self.ontres.create_objectid(
                     tag=s_tag,
                     ontology_id=s_oid,
@@ -1556,7 +1568,7 @@ class HatchingResult:
                 score=al4_score,
                 malware_families=mal_families,
                 attacks=attacks,
-                classification = Classification.UNRESTRICTED,
+                classification=Classification.UNRESTRICTED,
             )
 
             sig_dicts.append({"hatching_sig": hsig, "ontres_sig": ontres_sig})
@@ -1564,7 +1576,7 @@ class HatchingResult:
         return sig_dicts
 
     def _update_ontres_for_dynamic_result_info_section(self, **kwargs) -> None:
-        """Update the OntologyResults instance based on the information section for the dynamic results."""
+        """Update OntologyResults instance based on information section for the dynamic results."""
         if (
             kwargs.get("version") is None
             or kwargs.get("start_time") is None
@@ -1572,7 +1584,8 @@ class HatchingResult:
             or kwargs.get("platform") is None
         ):
             log.error(
-                "Unable to update the OntologyResult. Missing submission metadata for Hatching sample id: %s",
+                "Unable to update the OntologyResult. "
+                "Missing submission metadata for Hatching sample id: %s",
                 self.sample_id,
             )
             return
@@ -1599,7 +1612,8 @@ class HatchingResult:
             ),
             analysis_metadata=Sandbox.AnalysisMetadata(
                 start_time=kwargs.get("start_time"),
-                # task_id requires type int. Would require change in AL4 type since this task id is alpha-num
+                # task_id requires type int.
+                #  Would require change in AL4 type since this task id is alpha-num
                 # task_id=kwargs.get("task_name"),
                 task_id=None,
                 end_time=kwargs.get("end_time"),
@@ -1615,7 +1629,7 @@ class HatchingResult:
 
 
 def detect_domain_fronting(
-    http_traffic: Dict[str, Dict[str, Any]]
+    http_traffic: Dict[str, Dict[str, Any]],
 ) -> Optional[List[Dict[str, str]]]:
     """Determine whether domain-fronting is observed from the http traffic.
 
@@ -1631,7 +1645,7 @@ def detect_domain_fronting(
     """
     dom_fronting_findings = []
     if http_traffic:
-        for k, v in http_traffic.items():
+        for v in http_traffic.values():
             uri = v.get("http_request", {}).get("url")
             host_header_dom = v.get("http_request", {}).get("headers", {}).get("host")
 
@@ -1737,7 +1751,7 @@ def determine_vm_profiles(overview: Dict[str, Any]) -> List[str]:
 
 
 def extract_malware_families_from_hatching_sig(
-    hatching_sig: Dict[str, Any]
+    hatching_sig: Dict[str, Any],
 ) -> List[str]:
     """Get a list of all observed malware families from a hatching sig.
 
@@ -1824,7 +1838,7 @@ def get_network_tag_name(val: Optional[str], is_static_analysis=False) -> Option
 
     Args:
         val (Optional[str]): domain or ip
-        is_static_analysis (bool, optional): Whether for static analysis or dynamic analysis. Defaults to False.
+        is_static_analysis (bool, optional): Whether for static analysis or dynamic analysis.
 
     Returns:
         Optional[str]: "network.[static|dynamic].[ip|domain]" OR None if invalid input
