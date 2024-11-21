@@ -1827,7 +1827,7 @@ def get_ip_port(val: str) -> Tuple[Optional[str], Optional[str]]:
             ip = split[0].strip()
 
         if len(split) > 1:
-            if is_valid_port(split[1]):
+            if split[1].isdecimal() and is_valid_port(int(split[1])):
                 port = split[1].strip()
 
     return (ip, port)
