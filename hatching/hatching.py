@@ -4,30 +4,27 @@ import json
 import os
 import shutil
 import uuid
-
-from typing import Any, Dict, List, Optional
 from enum import Enum
-from retrying import retry  # type: ignore
+from typing import Any, Dict, List, Optional
 
-from assemblyline_v4_service.common.api import ServiceAPIError
-from assemblyline_v4_service.common.base import ServiceBase
-from assemblyline_v4_service.common.request import ServiceRequest
-from assemblyline_v4_service.common.result import (
-    ResultSection,
-    Result,
-    ResultTextSection,
-)
-
+from assemblyline.common import forge
 from assemblyline_service_utilities.common.dynamic_service_helper import (
     OntologyResults,
     attach_dynamic_ontology,
 )
-from assemblyline.common import forge
+from assemblyline_v4_service.common.api import ServiceAPIError
+from assemblyline_v4_service.common.base import ServiceBase
+from assemblyline_v4_service.common.request import ServiceRequest
+from assemblyline_v4_service.common.result import (
+    Result,
+    ResultSection,
+    ResultTextSection,
+)
+from retrying import retry  # type: ignore
 from triage import Client  # type: ignore
 from triage.client import ServerError  # type: ignore
 
 from .hatching_result import HatchingResult
-
 
 Classification = forge.get_classification()
 
@@ -72,7 +69,7 @@ class Hatching(ServiceBase):
 
     def __init__(self, config=None):
         """Configure service instance."""
-        super(Hatching, self).__init__(config)
+        super().__init__(config)
 
         self.service_request = None
         self.triage_client = None
@@ -118,14 +115,15 @@ class Hatching(ServiceBase):
             max_file_depth_short_circuit is not None
             and request.task.depth > max_file_depth_short_circuit
         ):
-            # This is a short-circuit to prevent a potential never-ending recursive analysis from using up a user's
-            # quota for the Hatching service. More info in the service_manifest.yml
-            # Ideally, this check would also include the ignore_dynamic_recursion_prevention submission parameter, but
-            # it is not available to query against.
+            # This is a short-circuit to prevent a potential never-ending recursive analysis from
+            # using up a user's quota for the Hatching service. See service_manifest.yml
+            # Ideally, this check would also include the ignore_dynamic_recursion_prevention
+            # submission parameter, but it is not available to query against.
             res = Result()
             res_section = ResultTextSection("Max-File-Depth Reached")
             res_section.add_line(
-                "Max file depth reached on this submission. This file will not be submitted to Hatching for analysis."
+                "Max file depth reached on this submission. "
+                "This file will not be submitted to Hatching for analysis."
             )
             res.add_section(res_section)
             request.result = res
@@ -186,11 +184,11 @@ class Hatching(ServiceBase):
         if file_type:
             if "windows" in file_type:
                 return VMPlatform.WINDOWS.value
-            elif "linux" in file_type:
+            if "linux" in file_type:
                 return VMPlatform.LINUX.value
-            elif "mach-o" in file_type:
+            if "mach-o" in file_type:
                 return VMPlatform.MACOS.value
-            elif "android" in file_type:
+            if "android" in file_type:
                 return VMPlatform.ANDROID.value
 
         return VMPlatform.DEFAULT.value
@@ -198,20 +196,24 @@ class Hatching(ServiceBase):
     def _build_dumped_artifacts(
         self, triage_reports: List[Dict[str, Any]], analyze_extracted_memory_dumps: bool
     ) -> List[Dict[str, Any]]:
-        """Generate a list of filtered artifacts that were dumped from the triage reports and include any pcaps.
+        """Generate a list of filtered artifacts that were dumped from the triage reports.
+
+        Include any pcaps found.
 
         Args:
-            triage_reports (triage_reports: List[Dict[str, Any]],): Hatching results for dynamic triage reports
-            analyze_extracted_memory_dumps (bool): indicate whether the memory dumps in dumped artifacts should be added
-                back to the pipeline for analysis or simply added as a suplementary file(s).
+            triage_reports (triage_reports: List[Dict[str, Any]],): Hatching results for dynamic
+                triage reports
+            analyze_extracted_memory_dumps (bool): indicate whether the memory dumps in dumped
+                artifacts should be added back to the pipeline for analysis or simply added as a
+                suplementary file(s).
 
         Returns:
             List[Dict[str, Any]]: list of artifact dicts
-                This structure is what is needed downstream by the OntologyResults.handle_artifacts().
+                This structure is needed downstream by the OntologyResults.handle_artifacts().
 
-                For clarity, the to_be_extracted attribute determines whether the file will be added back to the AL4
-                pipeline for analysis vs just being a supplementary file that is attached to the results but not
-                analyzed.
+                For clarity, the to_be_extracted attribute determines whether the file will be added
+                back to the AL4 pipeline for analysis vs just being a supplementary file that is
+                attached to the results but not analyzed.
                 [
                     {
                         "name": str
@@ -228,12 +230,13 @@ class Hatching(ServiceBase):
         """
         artifacts = []
 
-        # The hatching_api element is added to each artifact for use in a subsequent step for downloading the artifact
-        # from the Hatching API
+        # The hatching_api element is added to each artifact for use in a subsequent step for
+        # downloading the artifact from the Hatching API
 
         for rpt in triage_reports or []:
             # The 'extracted' key seems to represent malware extracted configs.
-            # The associated file should be in the 'dumped' entries if it is separate from the main file and available.
+            # The associated file should be in the 'dumped' entries if it is separate from the main
+            # file and available.
 
             for item in rpt.get("dumped", []):
                 # do not add duplicates
@@ -281,13 +284,14 @@ class Hatching(ServiceBase):
             user_selected_vm_profile (str): The user-selected VM profile.
 
         Raises:
-            ValueError: If the profile is not defined in the available vm profile list as defined by the vm_profile
-                config in submission_params.
+            ValueError: If the profile is not defined in the available vm profile list as defined by
+                the vm_profile config in submission_params.
 
         Returns:
             List[str]: A list of Hatching VM profiles to submit to.
-                The user may select a given profile. That user selection is mapped in the service_manifest config which
-                may point to 1..* Hatching VM profiles depending on how the administrator has configured the system.
+                The user may select a given profile. That user selection is mapped in the
+                service_manifest config which may point to 1..* Hatching VM profiles depending on
+                how the administrator has configured the system.
 
                 e.g. 'windows' may have multiple Hatching VM profiles associated.
 
@@ -311,7 +315,7 @@ class Hatching(ServiceBase):
                     VMPlatform.DEFAULT.value
                 )
         else:
-            for sub_param in self.service_attributes.submission_params:
+            for sub_param in self.service_attributes.submission_params:  # type: ignore
                 if sub_param.name == "vm_profile":
                     if user_selected_vm_profile in sub_param.list:
                         selected_vm_profiles.append(user_selected_vm_profile)
@@ -501,8 +505,9 @@ class Hatching(ServiceBase):
 
         Args:
             triage_reports (List[Dict[str, Any]]): Hatching results for dynamic triage reports
-            analyze_extracted_memory_dumps (bool): indicate whether the memory dumps in dumped artifacts should be added
-                back to the pipeline for analysis or simply added as a suplementary file(s).
+            analyze_extracted_memory_dumps (bool): indicate whether the memory dumps in dumped
+                artifacts should be added back to the pipeline for analysis or simply added as a
+                suplementary file(s).
 
         Returns:
             Optional[ResultSection]: A ResultSection or None
@@ -512,8 +517,8 @@ class Hatching(ServiceBase):
             triage_reports, analyze_extracted_memory_dumps
         )
 
-        # download all artifacts from hatching. Even if it's not being added back to the pipeline for analysis. Those
-        # files will just be added as supplementary files.
+        # download all artifacts from hatching. Even if it's not being added back to the pipeline
+        # for analysis. Those files will just be added as supplementary files.
         for artifact in artifacts:
             # update the artifact.path with local file path the file was downloaded to
             artifact["path"] = self._download_artifact(artifact)
@@ -523,8 +528,8 @@ class Hatching(ServiceBase):
             artifacts, self.service_request, collapsed=True, parent_relation="DYNAMIC"
         )
 
-        # Do not expect a ResultSection to come back. Currently this is only creating a ResultSection for hollows-hunter
-        # dumps which are not found in Hatching.
+        # Do not expect a ResultSection to come back. Currently this is only creating a
+        # ResultSection for hollows-hunter dumps which are not found in Hatching.
         if artifact_section:
             return artifact_section
 
@@ -540,9 +545,10 @@ class Hatching(ServiceBase):
 
         Args:
             file_name (str):
-            dump_origin (str, optional): dump origin from the hatching dumped file structure. Defaults to None.
-            analyze_extracted_memory_dumps (bool, optional): indicate whether the memory dumps in dumped artifacts
-                should be added back to the pipeline for analysis or simply added as a suplementary file(s).
+            dump_origin (str, optional): dump origin from the hatching dumped file structure.
+            analyze_extracted_memory_dumps (bool, optional): indicate whether the memory dumps in
+                dumped artifacts should be added back to the pipeline for analysis or simply added
+                as a suplementary file(s).
 
         Returns:
             bool: _description_
@@ -552,8 +558,6 @@ class Hatching(ServiceBase):
                 # Excluding memory dumps with an origin=exception
                 if analyze_extracted_memory_dumps and dump_origin != "exception":
                     return True
-                else:
-                    return False
             else:
                 return True
 
@@ -596,7 +600,8 @@ class Hatching(ServiceBase):
         """Submit the file to Hatching.
 
         Args:
-            vm_profiles (List[str]): List of vm-profile names. The profile(s) must be defined in Hatching.
+            vm_profiles (List[str]): List of vm-profile names. The profile(s) must be defined in
+                Hatching.
 
         Raises:
             FailedSubmissionException:
@@ -620,8 +625,8 @@ class Hatching(ServiceBase):
 
         if not sample_id:
             self.log.error(
-                "Invalid response received from the Hatching API while submitting a file for analysis.",
-                extra=json.dumps(sub_resp),
+                "Invalid response received from the Hatching API while submitting a file for "
+                "analysis. Response: %s" % json.dumps(sub_resp)
             )
             raise FailedSubmissionException()
         return sample_id
@@ -629,10 +634,11 @@ class Hatching(ServiceBase):
     def _validate_config(self) -> bool:
         """Validate the service_manifest config section is defined properly.
 
-        The vm_profile_autodetect_map config is validated to have the appropriate keys and value types.
+        The vm_profile_autodetect_map config is validated to have the appropriate keys and value
+        types.
 
         Raises:
-            InvalidConfigurationException: If an invalid configuration is detected it will raise this error.
+            InvalidConfigurationException: If an invalid configuration is detected raise this error.
 
         Returns:
             bool: is config valid
@@ -649,8 +655,9 @@ class Hatching(ServiceBase):
         has_required_keys = all(k in vm_autodetect_cfg.keys() for k in required_keys)
         if not has_required_keys:
             raise InvalidConfigurationException(
-                "The service_manifest config key is not configured properly. The vm_profile_autodetect_map key must "
-                f"have the following required keys: {required_keys}"
+                "The service_manifest config key is not configured properly. "
+                "The vm_profile_autodetect_map key must have the following required keys: "
+                f"{required_keys}"
             )
 
         #
@@ -666,9 +673,10 @@ class Hatching(ServiceBase):
         )
         if not keys_valid:
             raise InvalidConfigurationException(
-                "The service_manifest config key is not configured properly. The vm_profile_autodetect_map key must "
-                "has unexpected keys present. It can only have the required keys: "
-                f"{required_keys} and optional keys: {optional_keys}"
+                "The service_manifest config key is not configured properly. "
+                "The vm_profile_autodetect_map key must has unexpected keys present. "
+                f"It can only have the required keys: {required_keys} and optional keys: "
+                f"{optional_keys}"
             )
 
         #
@@ -678,8 +686,8 @@ class Hatching(ServiceBase):
         )
         if not vals_valid:
             raise InvalidConfigurationException(
-                "The service_manifest config.vm_profile_autodetect_map key has unexpected values. Each key must have a "
-                "list type with at least one value in the list."
+                "The service_manifest config.vm_profile_autodetect_map key has unexpected values. "
+                "Each key must have a list type with at least one value in the list."
             )
 
         return True

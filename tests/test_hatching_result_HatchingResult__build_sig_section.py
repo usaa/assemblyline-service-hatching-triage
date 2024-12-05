@@ -75,6 +75,7 @@ def test_build_sig_section(
             "name": "Test Sig 1",
             "type": "CUCKOO",
             "attributes": [],
+            "classification": "TLP:C",
             "attacks": [
                 {
                     "attack_id": "T1006",
@@ -104,6 +105,7 @@ def test_build_sig_section(
             "name": "Test Sig 2",
             "type": "CUCKOO",
             "attributes": [],
+            "classification": "TLP:C",
             "attacks": [],
             "actors": [],
             "malware_families": [],
