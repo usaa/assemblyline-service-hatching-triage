@@ -35,6 +35,9 @@ jobs:
     - name: pylint
       run: |
         python3 -m pylint -f colorized --load-plugins=pylint.extensions.mccabe --max-complexity 25 --fail-under=8 ${{ env.src_dir }}
+    - name: mypy
+      run: |
+        python3 -m mypy ${{ env.src_dir }} --cache-dir=/dev/null
     - name: Unit Test
       run: |
         pytest --cov=hatching tests
