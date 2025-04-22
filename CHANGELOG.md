@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - add AL4 expected heuristic ids to service_manifest
+- update to support 4.6
 
 ## [4.5.0.stable34] - 2024-11-22
 

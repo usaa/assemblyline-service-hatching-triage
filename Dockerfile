@@ -15,7 +15,7 @@ COPY hatching hatching
 COPY service_manifest.yml .
 
 # Patch version in manifest
-ARG version=4.5.0.dev0
+ARG version=4.6.0.dev0
 USER root
 RUN sed -i -e "s/\$SERVICE_TAG/$version/g" service_manifest.yml
 

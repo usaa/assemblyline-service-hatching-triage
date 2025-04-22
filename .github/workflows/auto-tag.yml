@@ -4,7 +4,7 @@ on:
   workflow_call:
     outputs:
       new_stable_tag:
-        description: "New Stable tag. e.g. v4.5.0.stable2"
+        description: "New Stable tag. e.g. v4.6.0.stable2"
         value: ${{ jobs.auto-tag.outputs.new_stable_tag }}
     
 jobs:
