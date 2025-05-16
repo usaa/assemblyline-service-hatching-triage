@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       version_tag:
-        description: "Tag to represent the version. e.g. v4.5.0.stable1, v4.5.0.dev2, <branchname>"
+        description: "Tag to represent the version. e.g. v4.6.0.stable1, v4.6.0.dev2, <branchname>"
         required: true
         type: string
 
@@ -40,7 +40,7 @@ jobs:
         id: determine-vars
         run: |
           basetag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          base_version="4.5.0"
+          base_version="4.6.0"
           default_version="${base_version}.dev0"
           al4_version=$default_version
 
@@ -53,10 +53,10 @@ jobs:
             # remove the v prefix
             al4_version=${version_tag#v}
 
-            tags="${basetag}:latest,${basetag}:4.5.latest,${basetag}:${al4_version}"
+            tags="${basetag}:latest,${basetag}:4.6.latest,${basetag}:${al4_version}"
 
             if [[ $version_tag == "v${base_version}.stable"* ]]; then
-              tags="${tags},${basetag}:4.5.stable"
+              tags="${tags},${basetag}:4.6.stable"
             fi
           else
             tags="${basetag}:latest"
