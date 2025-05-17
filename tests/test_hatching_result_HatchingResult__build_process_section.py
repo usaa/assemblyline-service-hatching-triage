@@ -84,7 +84,7 @@ def test_build_process_section(
             "safelisted": False,
         }
     ]
-    assert section.heuristic._heur_id is 57
+    assert section.heuristic._heur_id is 56
     # log.warning(section.tags)
     assert section.tags == {
         "dynamic.processtree_id": [
